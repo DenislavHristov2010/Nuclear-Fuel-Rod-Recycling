@@ -130,6 +130,24 @@ pyroUraniumBalance = massUraniumIngotKg + massUraniumHeldInSaltInventoryKg + mas
 PUREXUraniumRecoveryPercentage = (massUraniumInUO2Kg / totalUraniumMassKG) * 100
 pyroprocessingUraniumRecoveryPercentage = (massUraniumIngotKg / totalUraniumMassKG) * 100
 
+coolingTimeYears = 10.0
+coolingTimeDays = coolingTimeYears * 365.25  # 3652.5 days
+specificPowerMWpMTHM = 38.0
+deltaTCelsius = 10.0
+specificHeatWater = 4.184
+
+reactorOperatingPowerMW = specificPowerMWpMTHM * (heavyMetalMassStartingKG / 1000.0)
+irradiationTimeDays = (burnupGWDpMTHM * 1000.0) / specificPowerMWpMTHM
+irradiationTimeSeconds = irradiationTimeDays * 86400.0
+coolingTimeSeconds = max(coolingTimeDays * 86400.0, 10.0)
+
+term1WayWigner = coolingTimeSeconds ** -0.2
+term2WayWigner = (coolingTimeSeconds + irradiationTimeSeconds) ** -0.2
+decayHeatPowerMW = 0.0622 * reactorOperatingPowerMW * (term1WayWigner - term2WayWigner)
+
+decayHeatPowerKW = decayHeatPowerMW * 1000.0
+requiredCoolantFlowKgPerSec = decayHeatPowerKW / (specificHeatWater * deltaTCelsius)
+
 @app.get('/menu')
 def Saliitations():
     return 'zdrasti'
