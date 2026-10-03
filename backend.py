@@ -92,6 +92,44 @@ singlePelletMassGrams = sinteredDensityGramPerCm3 * pelletVolumeCm3
 totalNumberOfPellets = math.floor(1000.0 * massUO2PowderKg * (1.0 - fabricationLoss) / singlePelletMassGrams)
 PUREXUraniumBalance = massUraniumInUO2Kg + massUraniumUndissolvedhullKg + massUraniumLostToRaffinateKg + massUraniumInventoryInSolventKg + massUraniumLostInConversion
 
+#Pyroprocessing
+powderSeperationEfficiency = 0.998
+fractionUraniumReduced = 0.998
+currentEfficiencyReduction = 0.80
+faradayConstant = 96485
+electronsPerU3O8 = 16
+
+massUraniumPowderKg = powderSeperationEfficiency * totalUraniumMassKG
+massUraniumLeftOnHullsKg = (1-powderSeperationEfficiency) * totalUraniumMassKG
+molesUraniumPowder = 1000.0 * massUraniumPowderKg / molarMassUranium
+molesU3O8Powder = molesUraniumPowder /3.0
+
+chargeNeededCoulombs = electronsPerU3O8 * faradayConstant * molesU3O8Powder * fractionUraniumReduced / currentEfficiencyReduction
+massUraniumMetalKg = fractionUraniumReduced * massUraniumPowderKg
+massUraniumUnreducedKg = (1.0 - fractionUraniumReduced) * massUraniumPowderKg
+
+anodicDissolutionFraction = 0.998
+cathodeCurrentEfficiency = 0.99
+castingYield = 0.995
+zirconiumMassFraction = 0.10
+
+massUraniumDissolvedAtAnodeKg = anodicDissolutionFraction * massUraniumMetalKg
+massUraniumLeftInAnodeBasketKg = (1.0-anodicDissolutionFraction) * massUraniumMetalKg
+
+massUraniumDepositedOnCathodeKg = cathodeCurrentEfficiency * massUraniumDissolvedAtAnodeKg
+massUraniumHeldInSaltInventoryKg = (1.0 - cathodeCurrentEfficiency) * massUraniumDissolvedAtAnodeKg
+
+massUraniumIngotKg = castingYield * massUraniumDepositedOnCathodeKg
+massUraniumLeftInCrucibleHeelKg = (1 - castingYield) * massUraniumDepositedOnCathodeKg
+
+massZirconiumAddedKg = massUraniumIngotKg * zirconiumMassFraction / (1.0 - zirconiumMassFraction)
+massFinalMetalFuelAlloyKg = massUraniumIngotKg / (1.0 - zirconiumMassFraction)
+
+pyroUraniumBalance = massUraniumIngotKg + massUraniumHeldInSaltInventoryKg + massUraniumLeftOnHullsKg + massUraniumUnreducedKg + massUraniumLeftInAnodeBasketKg +  massUraniumLeftInCrucibleHeelKg
+
+PUREXUraniumRecoveryPercentage = (massUraniumInUO2Kg / totalUraniumMassKG) * 100
+pyroprocessingUraniumRecoveryPercentage = (massUraniumIngotKg / totalUraniumMassKG) * 100
+
 @app.get('/menu')
 def Saliitations():
     return 'zdrasti'
