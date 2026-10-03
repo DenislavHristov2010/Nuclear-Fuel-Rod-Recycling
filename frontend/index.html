@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="../css/styles.css" />
+        <script src="../js/app.js" defer></script>
+        <script type="module" src="../js/cooling.js"></script>
+        <script type="module" src="../js/purex.js"></script>
+        <script type="module" src="../js/pyroprocessing.js"></script>
+    </head>
+    <body>
+        <nav class="nav">
+            <div class="nav-links">
+                <button class="active" data-page="home" onclick="showPage('home', this)">Home</button>
+                <button data-page="cooling" onclick="showPage('cooling', this)">Cooling</button>
+                <button data-page="purex" onclick="showPage('purex', this)">PUREX</button>
+                <button data-page="pyroprocessing" onclick="showPage('pyroprocessing', this)">Pyroprocessing</button>
+                <button data-page="repackaging" onclick="showPage('repackaging', this)">Repackaging & Waste</button>
+            </div>
+            <!-- <div class="language-switcher">
+                <button id="lang-bg" class="active">BG</button>
+                <button id="lang-en">EN</button>
+            </div> -->
+        </nav>
+        <main>
+            <section id="home" class="page active">
+                <h1>Home</h1>
+            </section>
+            <section id="cooling" class="page">
+                <h1>Cooling</h1>
+                <p class="page-intro">
+                    Spent fuel assemblies are stored underwater so their decay heat and radioactivity can fall over
+                    time before the next stage. This is a simplified, educational simulation of that cooling
+                    stage &mdash; not an engineering-grade model.
+                </p>
+
+                <div class="cooling-layout">
+                    <div class="cooling-main">
+                        <div id="cooling-visual" class="cooling-visual"></div>
+
+                        <div class="cooling-controls">
+                            <button id="cooling-start" class="btn btn-primary">Start Cooling</button>
+                            <button id="cooling-pause" class="btn" disabled>Pause</button>
+                            <span id="cooling-status" class="cooling-status">READY</span>
+                        </div>
+
+                        <div class="cooling-progress">
+                            <progress id="cooling-progress" value="0" max="100"></progress>
+                            <span id="cooling-progress-label">0%</span>
+                        </div>
+
+                        <canvas id="cooling-chart" class="cooling-chart" width="640" height="200"></canvas>
+                    </div>
+
+                    <aside class="cooling-side">
+                        <div class="cooling-stats">
+                            <div class="stat">
+                                <span class="stat-label">Simulation time</span>
+                                <span id="stat-time" class="stat-value">&mdash;</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Fuel temperature</span>
+                                <span id="stat-temp" class="stat-value">&mdash;</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Decay heat</span>
+                                <span id="stat-heat" class="stat-value">&mdash;</span>
+                            </div>
+                        </div>
+
+                        <div class="cooling-info">
+                            <h2>About this object</h2>
+                            <p id="cooling-info-text">
+                                Click the fuel assembly, water, cooling pipes, or the blue glow in the model to
+                                learn what they represent.
+                            </p>
+                        </div>
+
+                        <button id="cooling-next" class="btn" hidden>Proceed to PUREX &rarr;</button>
+                    </aside>
+                </div>
+            </section>
+            <section id="purex" class="page">
+                <h1>PUREX</h1>
+                <p class="page-intro">
+                    The PUREX process chemically separates reusable uranium from fission-product waste in a
+                    series of steps. This is a simplified, educational walk-through of those steps &mdash;
+                    not a real plant design.
+                </p>
+
+                <div class="purex-layout">
+                    <div class="purex-main">
+                        <div id="purex-visual" class="purex-visual"></div>
+
+                        <div class="purex-controls">
+                            <button id="purex-start" class="btn btn-primary">Start Process</button>
+                            <button id="purex-pause" class="btn" disabled>Pause</button>
+                            <span id="purex-status" class="purex-status">READY</span>
+                        </div>
+
+                        <div class="purex-progress">
+                            <progress id="purex-progress" value="0" max="100"></progress>
+                            <span id="purex-progress-label">Stage 0 of 6</span>
+                        </div>
+
+                        <canvas id="purex-chart" class="purex-chart" width="640" height="200"></canvas>
+                    </div>
+
+                    <aside class="purex-side">
+                        <div class="purex-stats">
+                            <div class="stat">
+                                <span class="stat-label">Current stage</span>
+                                <span id="purex-stat-stage" class="stat-value">&mdash;</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Uranium in stream</span>
+                                <span id="purex-stat-uranium" class="stat-value">&mdash;</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Fission products</span>
+                                <span id="purex-stat-fp" class="stat-value">&mdash;</span>
+                            </div>
+                        </div>
+
+                        <div class="purex-info">
+                            <h2>About this object</h2>
+                            <p id="purex-info-text">
+                                Click the shearer, dissolver, extraction column, stripping column, calciner,
+                                or pellet press in the model to learn what each step does.
+                            </p>
+                        </div>
+
+                        <button id="purex-next" class="btn" hidden>Proceed to Repackaging & Waste &rarr;</button>
+                    </aside>
+                </div>
+            </section>
+            <section id="pyroprocessing" class="page">
+                <h1>Pyroprocessing</h1>
+                <p class="page-intro">
+                    Pyroprocessing separates reusable uranium from spent fuel using molten salts and
+                    electrochemistry instead of aqueous chemistry. This is a simplified, educational
+                    walk-through of those steps &mdash; not a real plant design.
+                </p>
+
+                <div class="pyro-layout">
+                    <div class="pyro-main">
+                        <div id="pyro-visual" class="pyro-visual"></div>
+
+                        <div class="pyro-controls">
+                            <button id="pyro-start" class="btn btn-primary">Start Process</button>
+                            <button id="pyro-pause" class="btn" disabled>Pause</button>
+                            <span id="pyro-status" class="pyro-status">READY</span>
+                        </div>
+
+                        <div class="pyro-progress">
+                            <progress id="pyro-progress" value="0" max="100"></progress>
+                            <span id="pyro-progress-label">Stage 0 of 7</span>
+                        </div>
+
+                        <canvas id="pyro-chart" class="pyro-chart" width="640" height="200"></canvas>
+                    </div>
+
+                    <aside class="pyro-side">
+                        <div class="pyro-stats">
+                            <div class="stat">
+                                <span class="stat-label">Current stage</span>
+                                <span id="pyro-stat-stage" class="stat-value">&mdash;</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Mass in stream</span>
+                                <span id="pyro-stat-mass" class="stat-value">&mdash;</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Fission products</span>
+                                <span id="pyro-stat-fp" class="stat-value">&mdash;</span>
+                            </div>
+                        </div>
+
+                        <div class="pyro-info">
+                            <h2>About this object</h2>
+                            <p id="pyro-info-text">
+                                Click the chopper, reduction cell, electrorefiner, cathode furnace,
+                                co-recovery unit, casting furnace, or waste units in the model to learn
+                                what each step does.
+                            </p>
+                        </div>
+
+                        <button id="pyro-next" class="btn" hidden>Proceed to Repackaging & Waste &rarr;</button>
+                    </aside>
+                </div>
+            </section>
+            <section id="repackaging" class="page">
+                <h1>Repackaging & Waste</h1>
+            </section>
+        </main>
+    </body>
+</html>
