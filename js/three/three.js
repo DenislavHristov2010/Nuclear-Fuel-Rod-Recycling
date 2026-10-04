@@ -1,9 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
-// This file owns the 3D scene only. It knows nothing about the simulation
-// state machine, the API, or the chart — cooling.js drives it by calling
-// updateCoolingVisual() every frame with plain numbers/booleans.
-
 let renderer, scene, camera;
 let mount;
 let rodMaterial;
@@ -74,7 +70,6 @@ function buildAssembly() {
 
     scene.add(assembly);
 
-    // Storage rack: a wireframe box around the rods plus top/bottom plates.
     const rackSpan = rows * spacing + 0.3;
     const rackGeometry = new THREE.BoxGeometry(rackSpan, rodLength + 0.3, rackSpan);
     const rackEdges = new THREE.EdgesGeometry(rackGeometry);
@@ -221,9 +216,6 @@ function onPointerClick(event) {
     raycaster.setFromCamera(pointer, camera);
     const hits = raycaster.intersectObjects(pickables, false);
     if (hits.length > 0 && onPickCallback) {
-        // Water is a transparent box that visually surrounds the fuel/pipes,
-        // so it is almost always the nearest raycast hit. Prefer whatever
-        // solid object sits behind it and only fall back to water itself.
         const preferred = hits.find((hit) => findInfoKey(hit.object) !== 'water') || hits[0];
         const key = findInfoKey(preferred.object);
         if (key) onPickCallback(key);

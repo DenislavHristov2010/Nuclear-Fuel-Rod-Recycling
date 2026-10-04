@@ -12,22 +12,13 @@
     <body>
         <nav class="nav">
             <div class="nav-links">
-                <button class="active" data-page="home" onclick="showPage('home', this)">Home</button>
-                <button data-page="cooling" onclick="showPage('cooling', this)">Cooling</button>
+                <button class="active" data-page="cooling" onclick="showPage('cooling', this)">Cooling</button>
                 <button data-page="purex" onclick="showPage('purex', this)">PUREX</button>
                 <button data-page="pyroprocessing" onclick="showPage('pyroprocessing', this)">Pyroprocessing</button>
-                <button data-page="repackaging" onclick="showPage('repackaging', this)">Repackaging & Waste</button>
             </div>
-            <!-- <div class="language-switcher">
-                <button id="lang-bg" class="active">BG</button>
-                <button id="lang-en">EN</button>
-            </div> -->
         </nav>
         <main>
-            <section id="home" class="page active">
-                <h1>Home</h1>
-            </section>
-            <section id="cooling" class="page">
+            <section id="cooling" class="page active">
                 <h1>Cooling</h1>
                 <p class="page-intro">
                     Spent fuel assemblies are stored underwater so their decay heat and radioactivity can fall over
@@ -38,6 +29,12 @@
                 <div class="cooling-layout">
                     <div class="cooling-main">
                         <div id="cooling-visual" class="cooling-visual"></div>
+
+                        <div class="weight-control">
+                            <label for="cooling-weight">Starting material weight</label>
+                            <input type="range" id="cooling-weight" min="1" max="2000" step="1" value="1000" />
+                            <span id="cooling-weight-value" class="weight-value">1000 kg</span>
+                        </div>
 
                         <div class="cooling-controls">
                             <button id="cooling-start" class="btn btn-primary">Start Cooling</button>
@@ -50,7 +47,7 @@
                             <span id="cooling-progress-label">0%</span>
                         </div>
 
-                        <canvas id="cooling-chart" class="cooling-chart" width="640" height="200"></canvas>
+                        <canvas id="cooling-chart" class="cooling-chart"></canvas>
                     </div>
 
                     <aside class="cooling-side">
@@ -93,6 +90,12 @@
                     <div class="purex-main">
                         <div id="purex-visual" class="purex-visual"></div>
 
+                        <div class="weight-control">
+                            <label for="purex-weight">Starting material weight</label>
+                            <input type="range" id="purex-weight" min="1" max="2000" step="1" value="1000" />
+                            <span id="purex-weight-value" class="weight-value">1000 kg</span>
+                        </div>
+
                         <div class="purex-controls">
                             <button id="purex-start" class="btn btn-primary">Start Process</button>
                             <button id="purex-pause" class="btn" disabled>Pause</button>
@@ -104,7 +107,7 @@
                             <span id="purex-progress-label">Stage 0 of 6</span>
                         </div>
 
-                        <canvas id="purex-chart" class="purex-chart" width="640" height="200"></canvas>
+                        <canvas id="purex-chart" class="purex-chart"></canvas>
                     </div>
 
                     <aside class="purex-side">
@@ -131,7 +134,6 @@
                             </p>
                         </div>
 
-                        <button id="purex-next" class="btn" hidden>Proceed to Repackaging & Waste &rarr;</button>
                     </aside>
                 </div>
             </section>
@@ -147,6 +149,12 @@
                     <div class="pyro-main">
                         <div id="pyro-visual" class="pyro-visual"></div>
 
+                        <div class="weight-control">
+                            <label for="pyro-weight">Starting material weight</label>
+                            <input type="range" id="pyro-weight" min="1" max="2000" step="1" value="1000" />
+                            <span id="pyro-weight-value" class="weight-value">1000 kg</span>
+                        </div>
+
                         <div class="pyro-controls">
                             <button id="pyro-start" class="btn btn-primary">Start Process</button>
                             <button id="pyro-pause" class="btn" disabled>Pause</button>
@@ -158,7 +166,7 @@
                             <span id="pyro-progress-label">Stage 0 of 7</span>
                         </div>
 
-                        <canvas id="pyro-chart" class="pyro-chart" width="640" height="200"></canvas>
+                        <canvas id="pyro-chart" class="pyro-chart"></canvas>
                     </div>
 
                     <aside class="pyro-side">
@@ -186,12 +194,8 @@
                             </p>
                         </div>
 
-                        <button id="pyro-next" class="btn" hidden>Proceed to Repackaging & Waste &rarr;</button>
                     </aside>
                 </div>
-            </section>
-            <section id="repackaging" class="page">
-                <h1>Repackaging & Waste</h1>
             </section>
         </main>
     </body>

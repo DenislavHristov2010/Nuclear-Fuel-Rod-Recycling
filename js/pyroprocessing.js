@@ -1,11 +1,10 @@
 import { initPyroScene, updatePyroVisual, resizePyroScene } from './three/pyroprocessing-scene.js';
+import { sizeCanvasForDisplay, drawAxisCaptions } from './chart-utils.js';
+import { setupWeightControl, scalePyroData } from './weight-control.js';
 
-// Same-origin by default - change if the API is served from elsewhere.
 const API_BASE = '';
 const PYRO_ENDPOINT = `${API_BASE}/api/pyroprocessing`;
 
-// How long each stage stays on screen while playing (ms). Purely an
-// animation-pacing choice, not data from the backend.
 const STAGE_MS = 1800;
 
 const INFO_TEXT = {
@@ -43,7 +42,6 @@ const els = {
     mount: document.getElementById('pyro-visual'),
     start: document.getElementById('pyro-start'),
     pause: document.getElementById('pyro-pause'),
-    next: document.getElementById('pyro-next'),
     status: document.getElementById('pyro-status'),
     progress: document.getElementById('pyro-progress'),
     progressLabel: document.getElementById('pyro-progress-label'),
@@ -52,6 +50,8 @@ const els = {
     statMass: document.getElementById('pyro-stat-mass'),
     statFp: document.getElementById('pyro-stat-fp'),
     infoText: document.getElementById('pyro-info-text'),
+    weightSlider: document.getElementById('pyro-weight'),
+    weightLabel: document.getElementById('pyro-weight-value'),
 };
 
 if (els.mount && els.start && els.pause && els.chart) {
@@ -63,10 +63,13 @@ function runPyroPage() {
     let data = null;
     let stageIndex = -1;
     let stageElapsed = 0;
-    let state = 'ready'; // ready | loading | running | paused | complete | error
+    let state = 'ready';
+
+    const weightControl = els.weightSlider
+        ? setupWeightControl(els.weightSlider, els.weightLabel)
+        : null;
 
     const pyroSection = document.getElementById('pyroprocessing');
-    const repackagingNavButton = document.querySelector('.nav-links button[data-page="repackaging"]');
 
     function ensureSceneInitialized() {
         if (sceneReady) return;
@@ -97,18 +100,20 @@ function runPyroPage() {
         state = next;
         els.status.classList.remove('is-active', 'is-complete', 'is-error');
 
+        if (weightControl) {
+            weightControl.setLocked(state === 'loading' || state === 'running' || state === 'paused');
+        }
+
         if (state === 'ready') {
             els.status.textContent = 'READY';
             els.start.disabled = false;
             els.start.textContent = 'Start Process';
             els.pause.disabled = true;
             els.pause.textContent = 'Pause';
-            els.next.hidden = true;
         } else if (state === 'loading') {
             els.status.textContent = 'LOADING';
             els.start.disabled = true;
             els.pause.disabled = true;
-            els.next.hidden = true;
         } else if (state === 'running') {
             els.status.textContent = 'ACTIVE';
             els.status.classList.add('is-active');
@@ -121,20 +126,18 @@ function runPyroPage() {
             els.pause.disabled = false;
             els.pause.textContent = 'Resume';
         } else if (state === 'complete') {
-            els.status.textContent = 'COMPLETE — NEXT STAGE';
+            els.status.textContent = 'COMPLETE';
             els.status.classList.add('is-complete');
             els.start.disabled = false;
             els.start.textContent = 'Restart';
             els.pause.disabled = true;
             els.pause.textContent = 'Pause';
-            els.next.hidden = false;
         } else if (state === 'error') {
             els.status.textContent = 'ERROR';
             els.status.classList.add('is-error');
             els.start.disabled = false;
             els.start.textContent = 'Retry';
             els.pause.disabled = true;
-            els.next.hidden = true;
         }
     }
 
@@ -151,7 +154,7 @@ function runPyroPage() {
                 throw new Error('Unexpected response shape from /api/pyroprocessing');
             }
 
-            data = json;
+            data = weightControl ? scalePyroData(json, weightControl.getWeightKg()) : json;
             stageIndex = 0;
             stageElapsed = 0;
             setState('running');
@@ -218,8 +221,8 @@ function runPyroPage() {
 
     function drawChart() {
         const ctx = els.chart.getContext('2d');
-        const width = els.chart.width;
-        const height = els.chart.height;
+        const { width, height } = sizeCanvasForDisplay(els.chart);
+        if (width === 0 || height === 0) return;
         const pad = 28;
 
         ctx.clearRect(0, 0, width, height);
@@ -237,6 +240,8 @@ function runPyroPage() {
         ctx.lineTo(width - pad, height - pad);
         ctx.stroke();
 
+        drawAxisCaptions(ctx, { width, height, pad, color: mutedColor, yLabel: 'Mass (kg)', xLabel: 'Process stage' });
+
         if (!data) {
             ctx.fillStyle = mutedColor;
             ctx.font = '12px Arial';
@@ -248,9 +253,6 @@ function runPyroPage() {
         const values = [];
         for (let i = 0; i < n; i++) values.push(mainstreamKgForStage(i));
 
-        // Auto-scale to the actual value range (same approach as the other
-        // pages' charts) - the Zr addition at Y6 means this isn't a purely
-        // decreasing series, so a zero-based axis would be misleading here.
         const validValues = values.filter((v) => v !== null && v !== undefined);
         const maxKg = validValues.length ? Math.max(...validValues) : 1;
         const minKg = validValues.length ? Math.min(...validValues) : 0;
@@ -304,8 +306,8 @@ function runPyroPage() {
 
         if (data) {
             updateReadouts();
-            drawChart();
         }
+        drawChart();
 
         const stageProgress = state === 'complete' ? 1 : stageElapsed / STAGE_MS;
         updatePyroVisual({ activeIndex: stageIndex, stageProgress });
@@ -313,11 +315,6 @@ function runPyroPage() {
 
     els.start.addEventListener('click', startProcess);
     els.pause.addEventListener('click', togglePause);
-    els.next.addEventListener('click', () => {
-        if (typeof window.showPage === 'function') {
-            window.showPage('repackaging', repackagingNavButton || undefined);
-        }
-    });
 
     setState('ready');
     drawChart();

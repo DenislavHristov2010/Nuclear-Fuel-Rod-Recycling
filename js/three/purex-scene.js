@@ -1,15 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
-// This file owns the 3D scene only, same split as js/three/three.js for the
-// Cooling page. purex.js drives it by calling updatePurexVisual() every
-// frame with plain numbers - it knows nothing about the API or state
-// machine.
-//
-// Six PUREX steps (P1-P6), each with its own schematic sub-animation showing
-// what actually happens there, connected by short particle flows colored to
-// match whatever material that step just produced (mixed metal/fuel pieces,
-// yellow uranyl nitrate, gold-loaded solvent, black UO2 powder, ...).
-
 const STATION_IDS = ['shearing', 'dissolution', 'extraction', 'stripping', 'conversion', 'pelletizing'];
 const STATION_SPACING = 3.4;
 
@@ -67,10 +57,6 @@ function addStageDisks(group, stageCount, infoKey) {
     }
 }
 
-// A spiraling particle stream inside a mixer-settler column. Each particle's
-// color is relerped every frame from startColor to endColor based on how far
-// along its single pass it is, so the stream visibly changes material as it
-// travels - e.g. clear solvent picking up a gold tint as it loads uranium.
 function buildStream(group, { radius, direction, startColor, endColor, count = 12, speed = 0.3 }) {
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
@@ -107,7 +93,6 @@ function buildStream(group, { radius, direction, startColor, endColor, count = 1
     };
 }
 
-// --- P1: shearer - chops the fuel assembly into short mixed pieces --------
 function buildShearer(index) {
     const group = new THREE.Group();
     group.position.set(stationX(index), 0, 0);
@@ -181,11 +166,7 @@ function buildShearer(index) {
     };
 }
 
-// --- P2: dissolver + clarifier ---------------------------------------------
-// First half of the stage: pieces dissolve in hot acid, off-gas vents, one
-// cladding hull is left behind in a basket at the bottom. Second half: the
-// liquid is fed to a spinning centrifuge that spins insoluble fines out into
-// a small waste collector.
+
 function buildDissolver(index) {
     const group = new THREE.Group();
     group.position.set(stationX(index), 0, 0);
@@ -392,7 +373,6 @@ function buildDissolver(index) {
     };
 }
 
-// --- P3: solvent extraction - counter-current mixer-settler column --------
 function buildExtractionColumn(index) {
     const group = new THREE.Group();
     group.position.set(stationX(index), 0, 0);
@@ -440,7 +420,6 @@ function buildExtractionColumn(index) {
     };
 }
 
-// --- P4: stripping - uranium moves back from solvent into fresh acid ------
 function buildStrippingColumn(index) {
     const group = new THREE.Group();
     group.position.set(stationX(index), 0, 0);
@@ -471,7 +450,6 @@ function buildStrippingColumn(index) {
     };
 }
 
-// --- P5: conversion - thermal denitration then hydrogen reduction ---------
 function buildConversion(index) {
     const group = new THREE.Group();
     group.position.set(stationX(index), 0, 0);
@@ -624,7 +602,6 @@ function buildConversion(index) {
     };
 }
 
-// --- P6: pellet fabrication - press, sinter, load into fuel rod tubes -----
 function buildPelletizer(index) {
     const group = new THREE.Group();
     group.position.set(stationX(index), 0, 0);
@@ -707,8 +684,6 @@ function buildPelletizer(index) {
     };
 }
 
-// A short colored particle flow between two world-space x positions, active
-// only while material is actually moving between the two stations it links.
 function buildFlowBetween(fromX, toX, colors, options = {}) {
     const count = options.count || 8;
     const y = options.y !== undefined ? options.y : -0.9;
@@ -796,15 +771,13 @@ export function initPurexScene(mountEl, onPick) {
     ];
 
     gapUpdaters = [
-        buildGapFlow(0, [0x3a3228, 0xb8bcc2]), // mixed dark fuel + metallic cladding pieces
-        buildGapFlow(1, [0xf2a428]), // bright yellow/orange uranyl nitrate solution
-        buildGapFlow(2, [0xf0c030]), // gold uranium-loaded organic solvent
-        buildGapFlow(3, [0xf2b33c]), // rich yellow stripped aqueous product
-        buildGapFlow(4, [0x1c1c1c]), // fine black UO2 powder
+        buildGapFlow(0, [0x3a3228, 0xb8bcc2]),
+        buildGapFlow(1, [0xf2a428]),
+        buildGapFlow(2, [0xf0c030]),
+        buildGapFlow(3, [0xf2b33c]),
+        buildGapFlow(4, [0x1c1c1c]),
     ];
 
-    // Stripped solvent recycles back to extraction, shown as a return flow
-    // above the columns so it doesn't collide with the forward process line.
     recycleFlow = buildFlowBetween(stationX(3), stationX(2), [0xd8ddd0], { y: 1.3, speed: 0.5, count: 6 });
 
     renderer.domElement.addEventListener('click', onPointerClick);
@@ -814,8 +787,7 @@ export function initPurexScene(mountEl, onPick) {
     animate();
 }
 
-// activeIndex: -1 before the process starts, 0-5 for the stage currently
-// running/just finished, stageProgress: 0..1 fraction through that stage.
+
 export function updatePurexVisual({ activeIndex = -1, stageProgress = 0 } = {}) {
     targetActiveIndex = activeIndex;
     targetStageProgress = THREE.MathUtils.clamp(stageProgress, 0, 1);
@@ -853,9 +825,6 @@ function animate() {
         recycleFlow.update(targetActiveIndex === 3 && targetStageProgress < 1, delta);
     }
 
-    // Gently bias the camera toward whichever station is currently active,
-    // following the material as it moves along the pipeline, without fully
-    // losing sight of the rest of the line.
     const clampedIndex = Math.max(0, Math.min(targetActiveIndex, STATION_IDS.length - 1));
     const targetFollowX = targetActiveIndex >= 0 ? stationX(clampedIndex) : 0;
     cameraFollowX += (targetFollowX - cameraFollowX) * Math.min(1, delta * 1.2);

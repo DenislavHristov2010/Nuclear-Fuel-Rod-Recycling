@@ -1,12 +1,10 @@
 import { initCoolingScene, updateCoolingVisual, resizeCoolingScene } from './three/three.js';
+import { sizeCanvasForDisplay, drawAxisCaptions } from './chart-utils.js';
+import { setupWeightControl, scaleCoolingData } from './weight-control.js';
 
-// Where the FastAPI backend lives. Same-origin by default — change this if
-// the API is served from a different host/port during development.
 const API_BASE = '';
 const COOLING_ENDPOINT = `${API_BASE}/api/cooling`;
 
-// Roughly how long (ms) each data point stays on screen while playing.
-// Lower = faster playback. Does not change the underlying data.
 const STEP_MS = 150;
 
 const INFO_TEXT = {
@@ -40,10 +38,10 @@ const els = {
     statTemp: document.getElementById('stat-temp'),
     statHeat: document.getElementById('stat-heat'),
     infoText: document.getElementById('cooling-info-text'),
+    weightSlider: document.getElementById('cooling-weight'),
+    weightLabel: document.getElementById('cooling-weight-value'),
 };
 
-// Nothing to drive if this page's markup isn't present (e.g. a future page
-// reusing this module by mistake). Bail out quietly.
 if (els.mount && els.start && els.pause && els.chart) {
     runCoolingPage();
 }
@@ -53,7 +51,11 @@ function runCoolingPage() {
     let data = null;
     let index = 0;
     let accumulator = 0;
-    let state = 'ready'; // ready | loading | cooling | paused | complete | error
+    let state = 'ready';
+
+    const weightControl = els.weightSlider
+        ? setupWeightControl(els.weightSlider, els.weightLabel)
+        : null;
 
     const coolingSection = document.getElementById('cooling');
     const purexNavButton = document.querySelector('.nav-links button[data-page="purex"]');
@@ -86,6 +88,10 @@ function runCoolingPage() {
     function setState(next) {
         state = next;
         els.status.classList.remove('is-active', 'is-complete', 'is-error');
+
+        if (weightControl) {
+            weightControl.setLocked(state === 'loading' || state === 'cooling' || state === 'paused');
+        }
 
         if (state === 'ready') {
             els.status.textContent = 'READY';
@@ -141,7 +147,7 @@ function runCoolingPage() {
                 throw new Error('Unexpected response shape from /api/cooling');
             }
 
-            data = json;
+            data = weightControl ? scaleCoolingData(json, weightControl.getWeightKg()) : json;
             index = 0;
             accumulator = 0;
             setState('cooling');
@@ -207,8 +213,8 @@ function runCoolingPage() {
 
     function drawChart() {
         const ctx = els.chart.getContext('2d');
-        const width = els.chart.width;
-        const height = els.chart.height;
+        const { width, height } = sizeCanvasForDisplay(els.chart);
+        if (width === 0 || height === 0) return;
         const pad = 28;
 
         ctx.clearRect(0, 0, width, height);
@@ -225,6 +231,8 @@ function runCoolingPage() {
         ctx.lineTo(pad, height - pad);
         ctx.lineTo(width - pad, height - pad);
         ctx.stroke();
+
+        drawAxisCaptions(ctx, { width, height, pad, color: mutedColor, yLabel: 'Temperature (C)', xLabel: 'Time (days)' });
 
         if (!data || !Array.isArray(data.results.temperature) || data.results.temperature.length === 0) {
             ctx.fillStyle = mutedColor;
@@ -262,8 +270,8 @@ function runCoolingPage() {
 
         ctx.fillStyle = mutedColor;
         ctx.font = '11px Arial';
-        ctx.fillText(`${Math.round(maxT)}`, 4, pad + 4);
-        ctx.fillText(`${Math.round(minT)}`, 4, height - pad);
+        ctx.fillText(`${Math.round(maxT)}C`, 4, pad + 4);
+        ctx.fillText(`${Math.round(minT)}C`, 4, height - pad);
     }
 
     let lastFrame = performance.now();
@@ -286,8 +294,8 @@ function runCoolingPage() {
 
         if (data) {
             updateReadouts();
-            drawChart();
         }
+        drawChart();
 
         updateCoolingVisual({
             heatFraction: computeHeatFraction(),

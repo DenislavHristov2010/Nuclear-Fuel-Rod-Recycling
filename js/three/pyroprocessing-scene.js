@@ -1,15 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
-// This file owns the 3D scene only, same split as the PUREX page's
-// three/purex-scene.js. pyroprocessing.js drives it by calling
-// updatePyroVisual() every frame with plain numbers - it knows nothing about
-// the API or state machine, and (per the project's scope-isolation pass)
-// shares no code with purex-scene.js even where the patterns look similar.
-//
-// Seven pyroprocessing steps (Y1-Y7) in molten-salt media. The palette is
-// deliberately warm (amber/orange glowing salts, dark metallics) to read as
-// a distinct process from PUREX's cooler aqueous-chemistry colors.
-
 const STATION_IDS = ['chopVolox', 'oxideReduction', 'electrorefining', 'cathodeProcessing', 'coRecovery', 'uZrCasting', 'wasteStreams'];
 const STATION_SPACING = 3.4;
 
@@ -65,9 +55,6 @@ function buildParticleCloud(group, { count, color, size = 0.05 }) {
     return { points, geo, mat, positions };
 }
 
-// --- Y1: chopper + voloxidation furnace ------------------------------------
-// UO2 pieces chopped from the assembly crumble into tan U3O8 powder as they
-// heat in oxygen; hulls route to a metallic waste bin, G1 gas vents off.
 function buildChopVolox(index) {
     const group = new THREE.Group();
     group.position.set(stationX(index), 0, 0);
@@ -173,9 +160,6 @@ function buildChopVolox(index) {
     };
 }
 
-// --- Y2: electrolytic oxide reduction ---------------------------------------
-// Glowing LiCl-Li2O salt bath; cathode basket of U3O8 turns to metal; O2
-// bubbles off the anode; G2/G3 fission products dissolve into the salt.
 function buildOxideReduction(index) {
     const group = new THREE.Group();
     group.position.set(stationX(index), 0, 0);
@@ -282,9 +266,6 @@ function buildOxideReduction(index) {
     };
 }
 
-// --- Y3: electrorefining -----------------------------------------------------
-// Anode basket of U metal dissolves (shrinks); shiny crystals grow on the
-// steel cathode rod; G4 dissolves into the salt, G7 stays as anode sludge.
 function buildElectrorefining(index) {
     const group = new THREE.Group();
     group.position.set(stationX(index), 0, 0);
@@ -377,9 +358,6 @@ function buildElectrorefining(index) {
     };
 }
 
-// --- Y4: cathode processing ---------------------------------------------------
-// Vacuum furnace vaporizes adhering salt (recycled back to Y3 above the
-// line), melts the clean uranium, and casts it into a solid ingot.
 function buildCathodeProcessing(index) {
     const group = new THREE.Group();
     group.position.set(stationX(index), 0, 0);
@@ -428,7 +406,6 @@ function buildCathodeProcessing(index) {
     };
 }
 
-// --- Y5: U/TRU co-recovery - bypassed stub -----------------------------------
 function buildCoRecoveryStub(index) {
     const group = new THREE.Group();
     group.position.set(stationX(index), 0, 0);
@@ -455,12 +432,10 @@ function buildCoRecoveryStub(index) {
     return {
         housingMat,
         update() {
-            // Intentionally static - Y5 is a bypassed stub, nothing to animate.
         },
     };
 }
 
-// --- Y6: U-Zr alloying furnace + pin-casting mold array -----------------------
 function buildUZrCasting(index) {
     const group = new THREE.Group();
     group.position.set(stationX(index), 0, 0);
@@ -521,7 +496,6 @@ function buildUZrCasting(index) {
     };
 }
 
-// --- Y7: waste streams - salt ceramic blocks + metallic waste ingot ----------
 function buildWasteStreams(index) {
     const group = new THREE.Group();
     group.position.set(stationX(index), 0, 0);
@@ -587,8 +561,6 @@ function buildWasteStreams(index) {
     };
 }
 
-// A short colored particle flow between two world-space x positions, active
-// only while material is actually moving between the two stations it links.
 function buildFlowBetween(fromX, toX, colors, options = {}) {
     const count = options.count || 8;
     const y = options.y !== undefined ? options.y : -0.9;
@@ -677,16 +649,15 @@ export function initPyroScene(mountEl, onPick) {
     ];
 
     gapUpdaters = [
-        buildGapFlow(0, [0x8a7a5a]), // tan U3O8 powder
-        buildGapFlow(1, [0xc8ccd0]), // reduced uranium metal
-        buildGapFlow(2, [0xc8ccd0]), // refined uranium on the cathode
-        buildGapFlow(3, [0xc8ccd0]), // clean cast uranium ingot
-        buildGapFlow(4, [0xc8ccd0]), // ingot bypassing co-recovery unchanged
-        buildGapFlow(5, [0xc8ccd0, 0x3a342c]), // alloy pins and waste routed onward
+        buildGapFlow(0, [0x8a7a5a]),
+        buildGapFlow(1, [0xc8ccd0]),
+        buildGapFlow(2, [0xc8ccd0]),
+        buildGapFlow(3, [0xc8ccd0]),
+        buildGapFlow(4, [0xc8ccd0]),
+        buildGapFlow(5, [0xc8ccd0, 0x3a342c]),
     ];
 
-    // Adhering salt vaporized off the cathode deposit in Y4 recycles back to
-    // the Y3 electrorefiner, shown above the line like PUREX's solvent loop.
+
     recycleFlow = buildFlowBetween(stationX(3), stationX(2), [0xe08a3a], { y: 1.3, speed: 0.5, count: 6 });
 
     renderer.domElement.addEventListener('click', onPointerClick);
@@ -696,8 +667,6 @@ export function initPyroScene(mountEl, onPick) {
     animate();
 }
 
-// activeIndex: -1 before the process starts, 0-6 for the stage currently
-// running/just finished, stageProgress: 0..1 fraction through that stage.
 export function updatePyroVisual({ activeIndex = -1, stageProgress = 0 } = {}) {
     targetActiveIndex = activeIndex;
     targetStageProgress = THREE.MathUtils.clamp(stageProgress, 0, 1);

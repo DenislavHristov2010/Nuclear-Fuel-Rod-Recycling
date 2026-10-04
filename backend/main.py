@@ -1,18 +1,3 @@
-"""Super simple backend for the Cooling simulation.
-
-Run it with:
-    pip install -r backend/requirements.txt
-    uvicorn backend.main:app --reload
-
-Then open:
-    http://localhost:8000/frontend/index.html
-
-This serves two things:
-1. GET /api/cooling - the simulated cooling data the frontend displays.
-2. The existing frontend/, css/, js/ folders as static files, so the whole
-   site runs from one server and one origin (no CORS setup needed).
-"""
-
 import math
 import os
 
@@ -29,8 +14,6 @@ FRONTEND_INDEX = os.path.join(BASE_DIR, "frontend", "index.html")
 
 app = FastAPI()
 
-# Left in place in case the frontend is ever served from a different origin
-# during development. Harmless when everything is same-origin.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -38,14 +21,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Illustrative-only starting point and decay rate. These are not real
-# operating values for any fuel type or pool design.
 START_TEMPERATURE_C = 85.0
 POOL_TEMPERATURE_C = 32.0
 START_DECAY_HEAT_KW = 12.0
 RESIDUAL_HEAT_KW = 1.0
-DECAY_RATE_PER_DAY = 0.18
-DURATION_DAYS = 20
+# Tuned so the curve reaches ~97% cooled by the end of DURATION_DAYS, same
+# target fraction the old 20-day/0.18 pair used - just stretched to fit a
+# 5-year window instead of flattening out in the first month of it.
+DECAY_RATE_PER_DAY = 0.002
+DURATION_DAYS = 5 * 365  # 5 years, expressed in days
 STEPS = 40
 
 
@@ -247,13 +231,7 @@ def get_pyroprocessing_data():
         },
     }
 
-
-# The frontend is a single-page app that switches sections with JS and
-# pushes real URLs via the History API (see js/app.js). For a direct
-# navigation or refresh at one of those URLs to work, the server has to
-# hand back the same index.html - the client-side router then shows the
-# right section based on the URL.
-SPA_ROUTES = ["/", "/home", "/cooling", "/purex", "/pyroprocessing", "/repackaging"]
+SPA_ROUTES = ["/", "/cooling", "/purex", "/pyroprocessing"]
 
 
 def serve_spa_index():

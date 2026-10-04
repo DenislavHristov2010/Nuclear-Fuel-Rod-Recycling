@@ -33,7 +33,6 @@ fissionProductGroupFractions = {
 }
 fp_masses_kg = {group: fraction * totalFissionProductMassKG for group, fraction in fissionProductGroupFractions.items()}
 
-#PUREX
 shearingThroughputKgPerDay = 200.0
 shearingTimeHours = heavyMetalMassStartingKG / shearingThroughputKgPerDay
 dissolutionRateConstant = 1.7

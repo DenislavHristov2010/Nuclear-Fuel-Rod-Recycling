@@ -140,6 +140,31 @@ main {
     margin-top: 16px;
 }
 
+.weight-control {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+}
+.weight-control label {
+    font-size: 13px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+.weight-control input[type="range"] {
+    flex: 1;
+    accent-color: var(--accent);
+}
+.weight-control input[type="range"]:disabled {
+    opacity: 0.5;
+}
+.weight-value {
+    width: 70px;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: right;
+}
+
 .btn {
     border: 1px solid var(--border);
     border-radius: 6px;

@@ -1,18 +1,12 @@
-// Maps each page section's id to the URL path it should live at. The
-// backend serves index.html for all of these paths (see backend/main.py),
-// so each one is a real, bookmarkable/shareable route, not just an in-page
-// toggle.
 const PAGE_ROUTES = {
-    home: '/',
-    cooling: '/cooling',
+    cooling: '/',
     purex: '/purex',
     pyroprocessing: '/pyroprocessing',
-    repackaging: '/repackaging',
 };
 
 function pageIdForPath(pathname) {
     const match = Object.entries(PAGE_ROUTES).find(([, path]) => path === pathname);
-    return match ? match[0] : 'home';
+    return match ? match[0] : 'cooling';
 }
 
 function navButtonFor(pageId) {
@@ -48,8 +42,6 @@ window.addEventListener('popstate', () => {
     showPage(pageIdForPath(location.pathname), null, { skipHistory: true });
 });
 
-// Sync to whatever URL the page was actually loaded at (direct nav, refresh,
-// or a shared link), without pushing a redundant history entry.
 showPage(pageIdForPath(location.pathname), null, { skipHistory: true });
 
 document.querySelectorAll('.language-switcher button').forEach(button => {

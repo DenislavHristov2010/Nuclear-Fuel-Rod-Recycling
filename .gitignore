@@ -1,21 +1,16 @@
-# Python cache
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
 
-# Virtual environments
 .venv/
 venv/
 env/
 
-# Editor config
 .vscode/
 
-# OS files
 .DS_Store
 Thumbs.db
 
-# Logs/temp
 *.log
 *.tmp
